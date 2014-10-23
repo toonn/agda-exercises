@@ -379,10 +379,12 @@ lem-tab-! (x :: xs) | .xs | refl = refl
 
 ⊆-refl : {A : Set}{xs : List A} → xs ⊆ xs
 ⊆-refl {xs = []} = stop
-⊆-refl {xs = x :: xs} with xs | ⊆-refl {xs = xs}
-... | .[] | stop = ?
-... | .(a :: as) | keep = ?
+⊆-refl {xs = x :: xs} = keep ⊆-refl
 
 ⊆-trans : {A : Set}{xs ys zs : List A} →
           xs ⊆ ys → ys ⊆ zs → xs ⊆ zs
-⊆-trans p q = {!!}
+⊆-trans stop stop = stop
+⊆-trans stop (drop q) = drop q
+⊆-trans (drop p) (drop q) = {!!}
+⊆-trans (drop p) (keep q) = {!!}
+⊆-trans (keep p) q = {!!}
