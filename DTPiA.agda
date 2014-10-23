@@ -363,4 +363,26 @@ lem-!-tab f (fsuc i) = lem-!-tab (f ∘ fsuc) i
 
 lem-tab-! : ∀ {A n} (xs : Vec A n) → tabulate (_!_ xs) == xs
 lem-tab-! [] = refl
-lem-tab-! (x :: xs) = {!!}
+lem-tab-! (x :: xs) with tabulate (_!_ xs) | lem-tab-! xs
+lem-tab-! (x :: xs) | .xs | refl = refl
+
+
+
+-- Ex 2.3 Sublists
+-- Remember the representation of sublists from Section 2.4:
+-- data _⊆_ {A : Set} : List A → List A → Set where
+--     stop : [] ⊆ []
+--     drop : ∀ {x xs ys} → xs ⊆ ys →      xs ⊆ x :: ys
+--     keep : ∀ {x xs ys} → xs ⊆ ys → x :: xs ⊆ x :: ys
+
+-- (a) Prove the reflexivity and transitivity of _⊆_:
+
+⊆-refl : {A : Set}{xs : List A} → xs ⊆ xs
+⊆-refl {xs = []} = stop
+⊆-refl {xs = x :: xs} with xs | ⊆-refl {xs = xs}
+... | .[] | stop = ?
+... | .(a :: as) | keep = ?
+
+⊆-trans : {A : Set}{xs ys zs : List A} →
+          xs ⊆ ys → ys ⊆ zs → xs ⊆ zs
+⊆-trans p q = {!!}
