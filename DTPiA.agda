@@ -388,3 +388,15 @@ lem-tab-! (x :: xs) | .xs | refl = refl
 ⊆-trans (drop p) (keep q) = drop (⊆-trans p q)
 ⊆-trans (keep p) (keep q) = keep (⊆-trans p q)
 
+-- Instead of defining the sublist relation we can define the type of sublists
+-- of a given list as follows:
+
+data SubList {A : Set} : List A → Set where
+  []   : SubList []
+  _::_ : ∀ x {xs} → SubList xs → SubList (x :: xs)
+  skip : ∀ {x xs} → SubList xs → SubList (x :: xs)
+
+-- (b) Define a function to extract the list corresponding to a sublist.
+
+forget : {A : Set}{xs : List A} → SubList xs → List A
+forget s = .xs
