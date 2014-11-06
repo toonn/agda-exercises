@@ -427,4 +427,10 @@ complement (skip {x = x} zs) = x :: (complement zs)
 -- (f) Compute all sublists of a given list
 
 sublists : {A : Set}(xs : List A) → List (SubList xs)
-sublists xs = {!!}
+sublists [] = []
+sublists (x :: xs) = map skip sxs ++ map (_::_ x) sxs
+         where
+           sxs = sublists xs
+           _++_ : {A : Set} → List A → List A → List A
+           [] ++ bs = bs
+           (a :: as) ++ bs = a :: (as ++ bs)
