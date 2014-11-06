@@ -399,4 +399,32 @@ data SubList {A : Set} : List A → Set where
 -- (b) Define a function to extract the list corresponding to a sublist.
 
 forget : {A : Set}{xs : List A} → SubList xs → List A
-forget s = .xs
+forget {xs = xs} _ = xs
+
+-- (c) Now, prove that a SubList is a sublist in the sense of _⊆_.
+
+lem-forget : {A : Set}{xs : List A}(zs : SubList xs) → forget zs ⊆ xs
+lem-forget [] = stop
+lem-forget (x :: zs) = keep (lem-forget zs)
+lem-forget (skip zs) = keep (lem-forget zs)
+
+-- (d) Give an alternative definition of filter which satisfies the sublist
+--     property by construction.
+
+filter' : {A : Set} → (A → Bool) → (xs : List A) → SubList xs
+filter' p [] = []
+filter' p (x :: xs) with p x
+... | true  = x :: filter' p xs
+... | false = skip (filter' p xs)
+
+-- (e) Define the complement of a sublist
+
+complement : {A : Set}{xs : List A} → SubList xs → SubList xs
+complement [] = []
+complement (x :: zs) = skip (complement zs)
+complement (skip {x = x} zs) = x :: (complement zs)
+
+-- (f) Compute all sublists of a given list
+
+sublists : {A : Set}(xs : List A) → List (SubList xs)
+sublists xs = {!!}
