@@ -454,7 +454,7 @@ module Views where
   half .(k * 2)     | even k = k
   half .(1 + k * 2) | odd k  = k
 
-  open import Function
+  open import Function hiding (_$_)
   open import Data.List
   open import Data.Bool renaming (T to isTrue)
 
@@ -540,3 +540,48 @@ module Views where
   (σ₁ ⇒ τ₁) =?= (σ₂ ⇒ τ₂) with σ₁ =?= σ₂ | τ₁ =?= τ₂
   (σ ⇒ τ)   =?= (.σ ⇒ .τ) | yes | yes = yes
   (σ₁ ⇒ τ₁) =?= (σ₂ ⇒ τ₂) | _   | _   = no
+
+  infixl 80 _$_
+  data Raw : Set where
+    var : Nat → Raw
+    _$_ : Raw → Raw → Raw
+    lam : Type → Raw → Raw
+
+  Cxt = List Type
+
+  data Term (Γ : Cxt) : Type → Set where
+    var : ∀ {τ} → τ ∈ Γ → Term Γ τ
+    _$_ : ∀ {σ τ} → Term Γ (σ ⇒ τ) → Term Γ σ → Term Γ τ
+    lam : ∀ σ {τ} → Term (σ ∷ Γ) τ → Term Γ (σ ⇒ τ)
+
+  erase : ∀ {Γ τ} → Term Γ τ → Raw
+  erase (var x)   = var (index x)
+  erase (t $ u)   = erase t $ erase u
+  erase (lam σ t) = lam σ (erase t)
+
+  data Infer (Γ : Cxt) : Raw → Set where
+    ok  : (τ : Type)(t : Term Γ τ) → Infer Γ (erase t)
+    bad : {e : Raw} → Infer Γ e
+
+  infer : (Γ : Cxt)(e : Raw) → Infer Γ e
+  infer Γ (var n)   with Γ ! n
+  infer Γ (var .(length Γ + n)) | outside n  = bad
+  infer Γ (var .(index x))      | inside σ x = ok σ (var x)
+
+  infer Γ (e₁ $ e₂)                   with infer Γ e₁
+  infer Γ (e₁ $ e₂)                   | bad     = bad
+  infer Γ (.(erase t₁) $ e₂)          | ok ı t₁ = bad
+  infer Γ (.(erase t₁) $ e₂)          | ok (σ ⇒ τ) t₁
+        with infer Γ e₂
+  infer Γ (.(erase t₁) $ e₂)          | ok (σ ⇒ τ) t₁
+        | bad = bad
+  infer Γ (.(erase t₁) $ .(erase t₂)) | ok (σ ⇒ τ) t₁
+        | ok σ′ t₂ with σ =?= σ′
+  infer Γ (.(erase t₁) $ .(erase t₂)) | ok (σ ⇒ τ) t₁
+        | ok .σ t₂ | yes = ok τ (t₁ $ t₂)
+  infer Γ (.(erase t₁) $ .(erase t₂)) | ok (σ ⇒ τ) t₁
+        | ok σ′ t₂ | no = bad
+
+  infer Γ (lam σ e) with infer (σ ∷ Γ) e
+  infer Γ (lam σ .(erase t)) | ok τ t = ok (σ ⇒ τ) (lam σ t)
+  infer Γ (lam σ e)          | bad    = bad
