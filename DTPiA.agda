@@ -585,3 +585,46 @@ module Views where
   infer Γ (lam σ e) with infer (σ ∷ Γ) e
   infer Γ (lam σ .(erase t)) | ok τ t = ok (σ ⇒ τ) (lam σ t)
   infer Γ (lam σ e)          | bad    = bad
+
+
+
+module Universes where
+  data   False : Set where
+  record True  : Set where
+
+  data Bool : Set where
+    true  : Bool
+    false : Bool
+
+  isTrue : Bool → Set
+  isTrue true  = True
+  isTrue false = False
+
+  infix  30 not_
+  infixr 25 _and_
+
+  not_ : Bool → Bool
+  not true  = false
+  not false = true
+
+  _and_ : Bool → Bool → Bool
+  true  and x = x
+  false and _ = false
+
+  notNotId : (a : Bool) → isTrue (not not a) → isTrue a
+  notNotId true  p = p
+  notNotId false ()
+
+  andIntro : (a b : Bool) → isTrue a → isTrue b → isTrue (a and b)
+  andIntro true  _ _  p = p
+  andIntro false _ () _
+
+  open import Data.Nat renaming (ℕ to Nat)
+
+  nonZero : Nat → Bool
+  nonZero zero    = false
+  nonZero (suc _) = true
+
+  postulate _div_ : Nat → (m : Nat){p : isTrue (nonZero m)} → Nat
+
+  three = 16 div 5
